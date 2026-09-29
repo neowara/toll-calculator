@@ -7,6 +7,33 @@ public class TollCalculator
 {
     private readonly SwedenPublicHoliday _holidays = new SwedenPublicHoliday();
 
+    // Must be sorted by start time. Before 06:00 and from 18:30 it is free.
+    private static readonly FeePeriod[] _feeSchedule =
+    {
+        new FeePeriod(6, 0, 8),
+        new FeePeriod(6, 30, 13),
+        new FeePeriod(7, 0, 18),
+        new FeePeriod(8, 0, 13),
+        new FeePeriod(8, 30, 8),
+        new FeePeriod(15, 0, 13),
+        new FeePeriod(15, 30, 18),
+        new FeePeriod(17, 0, 13),
+        new FeePeriod(18, 0, 8),
+        new FeePeriod(18, 30, 0)
+    };
+
+    private class FeePeriod
+    {
+        public readonly TimeSpan Start;
+        public readonly int Fee;
+
+        public FeePeriod(int hour, int minute, int fee)
+        {
+            Start = new TimeSpan(hour, minute, 0);
+            Fee = fee;
+        }
+    }
+
     /**
      * Calculate the total toll fee for the given passes
      * The passes can be in any order and from several days, each day is capped at 60
@@ -89,19 +116,13 @@ public class TollCalculator
 
         if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
 
-        int hour = date.Hour;
-        int minute = date.Minute;
-
-        if (hour == 6 && minute <= 29) return 8;
-        else if (hour == 6) return 13;
-        else if (hour == 7) return 18;
-        else if (hour == 8 && minute <= 29) return 13;
-        else if (hour == 8 || (hour >= 9 && hour <= 14)) return 8;
-        else if (hour == 15 && minute <= 29) return 13;
-        else if (hour == 15 || hour == 16) return 18;
-        else if (hour == 17) return 13;
-        else if (hour == 18 && minute <= 29) return 8;
-        else return 0;
+        // the fee is valid from the start time until the next one in the table
+        int fee = 0;
+        foreach (FeePeriod period in _feeSchedule)
+        {
+            if (date.TimeOfDay >= period.Start) fee = period.Fee;
+        }
+        return fee;
     }
 
     private bool IsTollFreeDate(DateTime date)
