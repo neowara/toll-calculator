@@ -23,8 +23,8 @@ namespace TollFeeCalculator
 
         private class FeePeriod
         {
-            public readonly TimeSpan Start;
-            public readonly int Fee;
+            public TimeSpan Start { get; }
+            public int Fee { get; }
 
             public FeePeriod(int hour, int minute, int fee)
             {
@@ -72,7 +72,7 @@ namespace TollFeeCalculator
             // starts a new hour.
             int dayFee = 0;
             int hourFee = 0;
-            DateTime hourStart = DateTime.MinValue;
+            DateTime? hourStart = null;
 
             foreach (DateTime pass in passes)
             {
@@ -81,7 +81,7 @@ namespace TollFeeCalculator
                 // a free pass (for example before 06:00) should not start an hour
                 if (fee == 0) continue;
 
-                if ((pass - hourStart).TotalMinutes > 60)
+                if (hourStart == null || (pass - hourStart.Value).TotalMinutes > 60)
                 {
                     dayFee += hourFee;
                     hourFee = 0;
