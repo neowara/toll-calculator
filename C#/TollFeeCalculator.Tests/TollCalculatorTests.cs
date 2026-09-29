@@ -54,7 +54,7 @@ namespace TollFeeCalculator.Tests
         [InlineData(23, 0, 0)]
         public void FeeDependsOnTimeOfDay(int hour, int minute, int expectedFee)
         {
-            int fee = _calculator.GetTollFee(At(hour, minute), _car);
+            int fee = _calculator.GetTollFee(_car, At(hour, minute));
 
             Assert.Equal(expectedFee, fee);
         }
@@ -70,19 +70,19 @@ namespace TollFeeCalculator.Tests
         {
             IVehicle vehicle = new OtherVehicle(type);
 
-            Assert.Equal(0, _calculator.GetTollFee(At(7, 30), vehicle));
+            Assert.Equal(0, _calculator.GetTollFee(vehicle, At(7, 30)));
         }
 
         [Fact]
         public void MotorbikeClassIsTollFree()
         {
-            Assert.Equal(0, _calculator.GetTollFee(At(7, 30), new Motorbike()));
+            Assert.Equal(0, _calculator.GetTollFee(new Motorbike(), At(7, 30)));
         }
 
         [Fact]
         public void NullVehicleThrows()
         {
-            Assert.Throws<ArgumentNullException>(() => _calculator.GetTollFee(At(7, 30), null!));
+            Assert.Throws<ArgumentNullException>(() => _calculator.GetTollFee(null!, At(7, 30)));
         }
 
         [Theory]
@@ -93,7 +93,7 @@ namespace TollFeeCalculator.Tests
         {
             DateTime date = new DateTime(year, month, day, 7, 30, 0);
 
-            Assert.Equal(0, _calculator.GetTollFee(date, _car));
+            Assert.Equal(0, _calculator.GetTollFee(_car, date));
         }
 
         [Theory]
@@ -105,7 +105,7 @@ namespace TollFeeCalculator.Tests
         {
             DateTime date = new DateTime(year, month, day, 7, 30, 0);
 
-            Assert.Equal(expectedFee, _calculator.GetTollFee(date, _car));
+            Assert.Equal(expectedFee, _calculator.GetTollFee(_car, date));
         }
 
         // Every date the old code had hardcoded for 2013
@@ -130,7 +130,7 @@ namespace TollFeeCalculator.Tests
         {
             DateTime date = new DateTime(year, month, day, 7, 30, 0);
 
-            Assert.Equal(0, _calculator.GetTollFee(date, _car));
+            Assert.Equal(0, _calculator.GetTollFee(_car, date));
         }
 
         // The holidays used to only work for 2013
@@ -148,7 +148,7 @@ namespace TollFeeCalculator.Tests
         {
             DateTime date = new DateTime(year, month, day, 7, 30, 0);
 
-            Assert.Equal(0, _calculator.GetTollFee(date, _car));
+            Assert.Equal(0, _calculator.GetTollFee(_car, date));
         }
 
         // The old code did not have these as free days in 2013 either
@@ -163,7 +163,7 @@ namespace TollFeeCalculator.Tests
         {
             DateTime date = new DateTime(year, month, day, 7, 30, 0);
 
-            Assert.Equal(18, _calculator.GetTollFee(date, _car));
+            Assert.Equal(18, _calculator.GetTollFee(_car, date));
         }
 
         [Fact]
@@ -172,7 +172,7 @@ namespace TollFeeCalculator.Tests
             // 26 Dec 2024 is a holiday, friday the 27th is a normal day
             DateTime date = new DateTime(2024, 12, 27, 7, 30, 0);
 
-            Assert.Equal(18, _calculator.GetTollFee(date, _car));
+            Assert.Equal(18, _calculator.GetTollFee(_car, date));
         }
 
         [Fact]

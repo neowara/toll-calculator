@@ -76,7 +76,7 @@ namespace TollFeeCalculator
 
             foreach (DateTime pass in passes)
             {
-                int fee = GetTollFee(pass, vehicle);
+                int fee = GetTollFee(vehicle, pass);
 
                 // a free pass (for example before 06:00) should not start an hour
                 if (fee == 0) continue;
@@ -107,7 +107,7 @@ namespace TollFeeCalculator
                    type == VehicleType.Military;
         }
 
-        public int GetTollFee(DateTime date, IVehicle vehicle)
+        public int GetTollFee(IVehicle vehicle, DateTime date)
         {
             if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
 
