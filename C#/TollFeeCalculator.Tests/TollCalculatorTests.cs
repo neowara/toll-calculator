@@ -98,6 +98,18 @@ namespace TollFeeCalculator.Tests
             Assert.Equal(0, _calculator.GetTollFee(date, _car));
         }
 
+        [Theory]
+        [InlineData(2025, 6, 30, 18)]
+        [InlineData(2025, 7, 1, 0)]
+        [InlineData(2025, 7, 31, 0)]
+        [InlineData(2025, 8, 1, 18)]
+        public void JulyIsFreeButNotTheDaysAround(int year, int month, int day, int expectedFee)
+        {
+            DateTime date = new DateTime(year, month, day, 7, 30, 0);
+
+            Assert.Equal(expectedFee, _calculator.GetTollFee(date, _car));
+        }
+
         // Every date the old code had hardcoded for 2013
         [Theory]
         [InlineData(2013, 1, 1)]
@@ -202,6 +214,15 @@ namespace TollFeeCalculator.Tests
             DateTime[] passes = { At(6, 15), At(6, 50), At(7, 20) };
 
             Assert.Equal(13 + 18, _calculator.GetTollFee(_car, passes));
+        }
+
+        [Fact]
+        public void PassWithoutFeeDoesNotStartAnHour()
+        {
+            // 05:30 is free, so the hour starts at 06:20 and 06:50 is part of it
+            DateTime[] passes = { At(5, 30), At(6, 20), At(6, 50), At(7, 10) };
+
+            Assert.Equal(18, _calculator.GetTollFee(_car, passes));
         }
 
         [Fact]

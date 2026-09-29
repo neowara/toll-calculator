@@ -27,6 +27,7 @@ was clearly aiming for:
 - "Once an hour" means an hour starts at the first pass and lasts 60 minutes (exactly 60 counts
   as the same hour). The next pass after that starts a new hour, and only the highest fee in
   each hour is charged.
+  A pass that costs nothing (before 06:00 for example) doesn't start an hour.
 - Passes from different days are handled separately, every day has its own 60 SEK limit.
 - Free days are weekends, all of July, Swedish public holidays and the day before a public
   holiday. The holidays come from the PublicHoliday package.

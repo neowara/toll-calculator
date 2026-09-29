@@ -43,14 +43,20 @@ public class TollCalculator
     {
         passes.Sort();
 
-        // An hour starts with the first pass and lasts 60 minutes. Only the highest
-        // fee in each hour is charged. The next pass after that starts a new hour.
+        // An hour starts with the first pass that costs something and lasts 60 minutes.
+        // Only the highest fee in each hour is charged. The next pass after that
+        // starts a new hour.
         int dayFee = 0;
         int hourFee = 0;
-        DateTime hourStart = passes[0];
+        DateTime hourStart = DateTime.MinValue;
 
         foreach (DateTime pass in passes)
         {
+            int fee = GetTollFee(pass, vehicle);
+
+            // a free pass (for example before 06:00) should not start an hour
+            if (fee == 0) continue;
+
             if ((pass - hourStart).TotalMinutes > 60)
             {
                 dayFee += hourFee;
@@ -58,7 +64,6 @@ public class TollCalculator
                 hourStart = pass;
             }
 
-            int fee = GetTollFee(pass, vehicle);
             if (fee > hourFee) hourFee = fee;
         }
         dayFee += hourFee;
