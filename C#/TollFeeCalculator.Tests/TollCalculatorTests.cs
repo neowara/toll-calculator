@@ -3,7 +3,7 @@ namespace TollFeeCalculator.Tests
     public class TollCalculatorTests
     {
         private readonly TollCalculator _calculator = new TollCalculator();
-        private readonly Vehicle _car = new Car();
+        private readonly IVehicle _car = new Car();
 
         // A normal tuesday, not close to any holiday
         private static DateTime At(int hour, int minute)
@@ -12,7 +12,7 @@ namespace TollFeeCalculator.Tests
         }
 
         // Only Car and Motorbike exist as classes, this covers the other types
-        private class OtherVehicle : Vehicle
+        private class OtherVehicle : IVehicle
         {
             private readonly VehicleType _type;
 
@@ -68,7 +68,7 @@ namespace TollFeeCalculator.Tests
         [InlineData(VehicleType.Military)]
         public void TollFreeVehiclesPayNothing(VehicleType type)
         {
-            Vehicle vehicle = new OtherVehicle(type);
+            IVehicle vehicle = new OtherVehicle(type);
 
             Assert.Equal(0, _calculator.GetTollFee(At(7, 30), vehicle));
         }

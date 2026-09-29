@@ -40,7 +40,7 @@ namespace TollFeeCalculator
         /// <param name="vehicle">The vehicle</param>
         /// <param name="dates">Date and time of all passes</param>
         /// <returns>The total toll fee</returns>
-        public int GetTollFee(Vehicle vehicle, DateTime[] dates)
+        public int GetTollFee(IVehicle vehicle, DateTime[] dates)
         {
             if (dates == null) throw new ArgumentNullException(nameof(dates));
 
@@ -63,7 +63,7 @@ namespace TollFeeCalculator
             return totalFee;
         }
 
-        private int GetTollFeeForOneDay(Vehicle vehicle, List<DateTime> passes)
+        private int GetTollFeeForOneDay(IVehicle vehicle, List<DateTime> passes)
         {
             passes.Sort();
 
@@ -96,7 +96,7 @@ namespace TollFeeCalculator
             return dayFee;
         }
 
-        private bool IsTollFreeVehicle(Vehicle vehicle)
+        private bool IsTollFreeVehicle(IVehicle vehicle)
         {
             VehicleType type = vehicle.GetVehicleType();
             return type == VehicleType.Motorbike ||
@@ -107,7 +107,7 @@ namespace TollFeeCalculator
                    type == VehicleType.Military;
         }
 
-        public int GetTollFee(DateTime date, Vehicle vehicle)
+        public int GetTollFee(DateTime date, IVehicle vehicle)
         {
             if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
 
