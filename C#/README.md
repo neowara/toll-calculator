@@ -29,6 +29,8 @@ was clearly aiming for:
   each hour is charged.
   A pass that costs nothing (before 06:00 for example) doesn't start an hour.
 - Passes from different days are handled separately, every day has its own 60 SEK limit.
+- A pass with `DateTimeKind.Utc` is converted to Swedish time (Europe/Stockholm). Any other pass is
+  assumed to be in Swedish time already.
 - Free days are weekends, all of July, Swedish public holidays and the day before a public
   holiday. The holidays come from the PublicHoliday package.
   The package also counts midsummer, christmas and new year's eve as holidays, but the days

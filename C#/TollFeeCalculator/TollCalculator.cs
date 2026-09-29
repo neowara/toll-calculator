@@ -6,6 +6,8 @@ namespace TollFeeCalculator
     {
         private readonly SwedenPublicHoliday _holidays = new SwedenPublicHoliday();
 
+        private static readonly TimeZoneInfo _swedenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm");
+
         // Must be sorted by start time. Before 06:00 and from 18:30 it is free.
         private static readonly FeePeriod[] _feeSchedule =
         {
@@ -46,8 +48,9 @@ namespace TollFeeCalculator
 
             // the 60 SEK limit is per day so we handle one day at a time
             Dictionary<DateTime, List<DateTime>> passesPerDay = new Dictionary<DateTime, List<DateTime>>();
-            foreach (DateTime date in dates)
+            foreach (DateTime pass in dates)
             {
+                DateTime date = ToSwedishTime(pass);
                 if (!passesPerDay.ContainsKey(date.Date))
                 {
                     passesPerDay[date.Date] = new List<DateTime>();
@@ -111,15 +114,23 @@ namespace TollFeeCalculator
         {
             if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
 
-            if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
+            DateTime swedishTime = ToSwedishTime(date);
+            if (IsTollFreeDate(swedishTime) || IsTollFreeVehicle(vehicle)) return 0;
 
             // the fee is valid from the start time until the next one in the table
             int fee = 0;
             foreach (FeePeriod period in _feeSchedule)
             {
-                if (date.TimeOfDay >= period.Start) fee = period.Fee;
+                if (swedishTime.TimeOfDay >= period.Start) fee = period.Fee;
             }
             return fee;
+        }
+
+        // UTC times are converted to Swedish time. Any other time is assumed to be Swedish time already.
+        private static DateTime ToSwedishTime(DateTime date)
+        {
+            if (date.Kind == DateTimeKind.Utc) return TimeZoneInfo.ConvertTimeFromUtc(date, _swedenTimeZone);
+            return date;
         }
 
         private bool IsTollFreeDate(DateTime date)

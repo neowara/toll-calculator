@@ -176,6 +176,37 @@ namespace TollFeeCalculator.Tests
         }
 
         [Fact]
+        public void UtcPassIsConvertedToSwedishTimeInWinter()
+        {
+            // 05:30 UTC is 06:30 in Sweden in March (UTC+1)
+            DateTime utc = new DateTime(2024, 3, 5, 5, 30, 0, DateTimeKind.Utc);
+
+            Assert.Equal(13, _calculator.GetTollFee(_car, utc));
+        }
+
+        [Fact]
+        public void UtcPassIsConvertedToSwedishTimeInSummer()
+        {
+            // 05:30 UTC is 07:30 in Sweden in April (UTC+2), 9 April 2024 is a tuesday
+            DateTime utc = new DateTime(2024, 4, 9, 5, 30, 0, DateTimeKind.Utc);
+
+            Assert.Equal(18, _calculator.GetTollFee(_car, utc));
+        }
+
+        [Fact]
+        public void UtcPassesAreGroupedAsSwedishTime()
+        {
+            // 06:30 and 07:00 in Sweden, so the same hour and the highest fee counts
+            DateTime[] passes =
+            {
+                new DateTime(2024, 3, 5, 5, 30, 0, DateTimeKind.Utc),
+                new DateTime(2024, 3, 5, 6, 0, 0, DateTimeKind.Utc)
+            };
+
+            Assert.Equal(18, _calculator.GetTollFee(_car, passes));
+        }
+
+        [Fact]
         public void SinglePassIsChargedItsFee()
         {
             DateTime[] passes = { At(7, 30) };
