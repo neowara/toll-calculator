@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using TollFeeCalculator;
 
@@ -6,38 +7,63 @@ public class TollCalculator
 {
 
     /**
-     * Calculate the total toll fee for one day
+     * Calculate the total toll fee for the given passes
+     * The passes can be in any order and from several days, each day is capped at 60
      *
      * @param vehicle - the vehicle
-     * @param dates   - date and time of all passes on one day
-     * @return - the total toll fee for that day
+     * @param dates   - date and time of all passes
+     * @return - the total toll fee
      */
 
     public int GetTollFee(Vehicle vehicle, DateTime[] dates)
     {
-        DateTime intervalStart = dates[0];
-        int totalFee = 0;
+        if (dates == null) throw new ArgumentNullException(nameof(dates));
+
+        // the 60 SEK limit is per day so we handle one day at a time
+        Dictionary<DateTime, List<DateTime>> passesPerDay = new Dictionary<DateTime, List<DateTime>>();
         foreach (DateTime date in dates)
         {
-            int nextFee = GetTollFee(date, vehicle);
-            int tempFee = GetTollFee(intervalStart, vehicle);
-
-            long diffInMillies = date.Millisecond - intervalStart.Millisecond;
-            long minutes = diffInMillies/1000/60;
-
-            if (minutes <= 60)
+            if (!passesPerDay.ContainsKey(date.Date))
             {
-                if (totalFee > 0) totalFee -= tempFee;
-                if (nextFee >= tempFee) tempFee = nextFee;
-                totalFee += tempFee;
+                passesPerDay[date.Date] = new List<DateTime>();
             }
-            else
-            {
-                totalFee += nextFee;
-            }
+            passesPerDay[date.Date].Add(date);
         }
-        if (totalFee > 60) totalFee = 60;
+
+        int totalFee = 0;
+        foreach (List<DateTime> passes in passesPerDay.Values)
+        {
+            totalFee += GetTollFeeForOneDay(vehicle, passes);
+        }
         return totalFee;
+    }
+
+    private int GetTollFeeForOneDay(Vehicle vehicle, List<DateTime> passes)
+    {
+        passes.Sort();
+
+        // An hour starts with the first pass and lasts 60 minutes. Only the highest
+        // fee in each hour is charged. The next pass after that starts a new hour.
+        int dayFee = 0;
+        int hourFee = 0;
+        DateTime hourStart = passes[0];
+
+        foreach (DateTime pass in passes)
+        {
+            if ((pass - hourStart).TotalMinutes > 60)
+            {
+                dayFee += hourFee;
+                hourFee = 0;
+                hourStart = pass;
+            }
+
+            int fee = GetTollFee(pass, vehicle);
+            if (fee > hourFee) hourFee = fee;
+        }
+        dayFee += hourFee;
+
+        if (dayFee > 60) dayFee = 60;
+        return dayFee;
     }
 
     private bool IsTollFreeVehicle(Vehicle vehicle)

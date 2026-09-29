@@ -84,7 +84,7 @@ namespace TollFeeCalculator.Tests
         [Fact]
         public void NullVehicleThrows()
         {
-            Assert.Throws<ArgumentNullException>(() => _calculator.GetTollFee(At(7, 30), null));
+            Assert.Throws<ArgumentNullException>(() => _calculator.GetTollFee(At(7, 30), null!));
         }
 
         [Theory]
@@ -157,6 +157,12 @@ namespace TollFeeCalculator.Tests
             DateTime[] passes = { At(7, 30) };
 
             Assert.Equal(18, _calculator.GetTollFee(_car, passes));
+        }
+
+        [Fact]
+        public void NullPassesThrows()
+        {
+            Assert.Throws<ArgumentNullException>(() => _calculator.GetTollFee(_car, null!));
         }
 
         [Fact]
