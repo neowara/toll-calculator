@@ -1,5 +1,3 @@
-using TollFeeCalculator;
-
 namespace TollFeeCalculator.Tests
 {
     public class TollCalculatorTests

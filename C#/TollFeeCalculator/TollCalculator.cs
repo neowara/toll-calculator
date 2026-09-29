@@ -1,144 +1,142 @@
-﻿using System;
-using System.Collections.Generic;
-using PublicHoliday;
-using TollFeeCalculator;
+﻿using PublicHoliday;
 
-public class TollCalculator
+namespace TollFeeCalculator
 {
-    private readonly SwedenPublicHoliday _holidays = new SwedenPublicHoliday();
-
-    // Must be sorted by start time. Before 06:00 and from 18:30 it is free.
-    private static readonly FeePeriod[] _feeSchedule =
+    public class TollCalculator
     {
-        new FeePeriod(6, 0, 8),
-        new FeePeriod(6, 30, 13),
-        new FeePeriod(7, 0, 18),
-        new FeePeriod(8, 0, 13),
-        new FeePeriod(8, 30, 8),
-        new FeePeriod(15, 0, 13),
-        new FeePeriod(15, 30, 18),
-        new FeePeriod(17, 0, 13),
-        new FeePeriod(18, 0, 8),
-        new FeePeriod(18, 30, 0)
-    };
+        private readonly SwedenPublicHoliday _holidays = new SwedenPublicHoliday();
 
-    private class FeePeriod
-    {
-        public readonly TimeSpan Start;
-        public readonly int Fee;
-
-        public FeePeriod(int hour, int minute, int fee)
+        // Must be sorted by start time. Before 06:00 and from 18:30 it is free.
+        private static readonly FeePeriod[] _feeSchedule =
         {
-            Start = new TimeSpan(hour, minute, 0);
-            Fee = fee;
-        }
-    }
+            new FeePeriod(6, 0, 8),
+            new FeePeriod(6, 30, 13),
+            new FeePeriod(7, 0, 18),
+            new FeePeriod(8, 0, 13),
+            new FeePeriod(8, 30, 8),
+            new FeePeriod(15, 0, 13),
+            new FeePeriod(15, 30, 18),
+            new FeePeriod(17, 0, 13),
+            new FeePeriod(18, 0, 8),
+            new FeePeriod(18, 30, 0)
+        };
 
-    /**
-     * Calculate the total toll fee for the given passes
-     * The passes can be in any order and from several days, each day is capped at 60
-     *
-     * @param vehicle - the vehicle
-     * @param dates   - date and time of all passes
-     * @return - the total toll fee
-     */
-
-    public int GetTollFee(Vehicle vehicle, DateTime[] dates)
-    {
-        if (dates == null) throw new ArgumentNullException(nameof(dates));
-
-        // the 60 SEK limit is per day so we handle one day at a time
-        Dictionary<DateTime, List<DateTime>> passesPerDay = new Dictionary<DateTime, List<DateTime>>();
-        foreach (DateTime date in dates)
+        private class FeePeriod
         {
-            if (!passesPerDay.ContainsKey(date.Date))
+            public readonly TimeSpan Start;
+            public readonly int Fee;
+
+            public FeePeriod(int hour, int minute, int fee)
             {
-                passesPerDay[date.Date] = new List<DateTime>();
+                Start = new TimeSpan(hour, minute, 0);
+                Fee = fee;
             }
-            passesPerDay[date.Date].Add(date);
         }
 
-        int totalFee = 0;
-        foreach (List<DateTime> passes in passesPerDay.Values)
+        /// <summary>
+        /// Calculate the total toll fee for the given passes. The passes can be in any order
+        /// and from several days, each day is capped at 60 SEK.
+        /// </summary>
+        /// <param name="vehicle">The vehicle</param>
+        /// <param name="dates">Date and time of all passes</param>
+        /// <returns>The total toll fee</returns>
+        public int GetTollFee(Vehicle vehicle, DateTime[] dates)
         {
-            totalFee += GetTollFeeForOneDay(vehicle, passes);
-        }
-        return totalFee;
-    }
+            if (dates == null) throw new ArgumentNullException(nameof(dates));
 
-    private int GetTollFeeForOneDay(Vehicle vehicle, List<DateTime> passes)
-    {
-        passes.Sort();
-
-        // An hour starts with the first pass that costs something and lasts 60 minutes.
-        // Only the highest fee in each hour is charged. The next pass after that
-        // starts a new hour.
-        int dayFee = 0;
-        int hourFee = 0;
-        DateTime hourStart = DateTime.MinValue;
-
-        foreach (DateTime pass in passes)
-        {
-            int fee = GetTollFee(pass, vehicle);
-
-            // a free pass (for example before 06:00) should not start an hour
-            if (fee == 0) continue;
-
-            if ((pass - hourStart).TotalMinutes > 60)
+            // the 60 SEK limit is per day so we handle one day at a time
+            Dictionary<DateTime, List<DateTime>> passesPerDay = new Dictionary<DateTime, List<DateTime>>();
+            foreach (DateTime date in dates)
             {
-                dayFee += hourFee;
-                hourFee = 0;
-                hourStart = pass;
+                if (!passesPerDay.ContainsKey(date.Date))
+                {
+                    passesPerDay[date.Date] = new List<DateTime>();
+                }
+                passesPerDay[date.Date].Add(date);
             }
 
-            if (fee > hourFee) hourFee = fee;
+            int totalFee = 0;
+            foreach (List<DateTime> passes in passesPerDay.Values)
+            {
+                totalFee += GetTollFeeForOneDay(vehicle, passes);
+            }
+            return totalFee;
         }
-        dayFee += hourFee;
 
-        if (dayFee > 60) dayFee = 60;
-        return dayFee;
-    }
-
-    private bool IsTollFreeVehicle(Vehicle vehicle)
-    {
-        VehicleType type = vehicle.GetVehicleType();
-        return type == VehicleType.Motorbike ||
-               type == VehicleType.Tractor ||
-               type == VehicleType.Emergency ||
-               type == VehicleType.Diplomat ||
-               type == VehicleType.Foreign ||
-               type == VehicleType.Military;
-    }
-
-    public int GetTollFee(DateTime date, Vehicle vehicle)
-    {
-        if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
-
-        if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
-
-        // the fee is valid from the start time until the next one in the table
-        int fee = 0;
-        foreach (FeePeriod period in _feeSchedule)
+        private int GetTollFeeForOneDay(Vehicle vehicle, List<DateTime> passes)
         {
-            if (date.TimeOfDay >= period.Start) fee = period.Fee;
+            passes.Sort();
+
+            // An hour starts with the first pass that costs something and lasts 60 minutes.
+            // Only the highest fee in each hour is charged. The next pass after that
+            // starts a new hour.
+            int dayFee = 0;
+            int hourFee = 0;
+            DateTime hourStart = DateTime.MinValue;
+
+            foreach (DateTime pass in passes)
+            {
+                int fee = GetTollFee(pass, vehicle);
+
+                // a free pass (for example before 06:00) should not start an hour
+                if (fee == 0) continue;
+
+                if ((pass - hourStart).TotalMinutes > 60)
+                {
+                    dayFee += hourFee;
+                    hourFee = 0;
+                    hourStart = pass;
+                }
+
+                if (fee > hourFee) hourFee = fee;
+            }
+            dayFee += hourFee;
+
+            if (dayFee > 60) dayFee = 60;
+            return dayFee;
         }
-        return fee;
-    }
 
-    private bool IsTollFreeDate(DateTime date)
-    {
-        if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) return true;
+        private bool IsTollFreeVehicle(Vehicle vehicle)
+        {
+            VehicleType type = vehicle.GetVehicleType();
+            return type == VehicleType.Motorbike ||
+                   type == VehicleType.Tractor ||
+                   type == VehicleType.Emergency ||
+                   type == VehicleType.Diplomat ||
+                   type == VehicleType.Foreign ||
+                   type == VehicleType.Military;
+        }
 
-        if (date.Month == 7) return true;
+        public int GetTollFee(DateTime date, Vehicle vehicle)
+        {
+            if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
 
-        if (_holidays.IsPublicHoliday(date)) return true;
+            if (IsTollFreeDate(date) || IsTollFreeVehicle(vehicle)) return 0;
 
-        // The day before a public holiday is free as well. The package also counts midsummer,
-        // christmas and new year's eve as holidays, but the days before those are normal days.
-        DateTime tomorrow = date.AddDays(1).Date;
-        bool tomorrowIsAnEve = tomorrow == SwedenPublicHoliday.MidsummerEve(tomorrow.Year) ||
-                               tomorrow == SwedenPublicHoliday.ChristmasEve(tomorrow.Year) ||
-                               tomorrow == SwedenPublicHoliday.NewYearsEve(tomorrow.Year);
-        return _holidays.IsPublicHoliday(tomorrow) && !tomorrowIsAnEve;
+            // the fee is valid from the start time until the next one in the table
+            int fee = 0;
+            foreach (FeePeriod period in _feeSchedule)
+            {
+                if (date.TimeOfDay >= period.Start) fee = period.Fee;
+            }
+            return fee;
+        }
+
+        private bool IsTollFreeDate(DateTime date)
+        {
+            if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) return true;
+
+            if (date.Month == 7) return true;
+
+            if (_holidays.IsPublicHoliday(date)) return true;
+
+            // The day before a public holiday is free as well. The package also counts midsummer,
+            // christmas and new year's eve as holidays, but the days before those are normal days.
+            DateTime tomorrow = date.AddDays(1).Date;
+            bool tomorrowIsAnEve = tomorrow == SwedenPublicHoliday.MidsummerEve(tomorrow.Year) ||
+                                   tomorrow == SwedenPublicHoliday.ChristmasEve(tomorrow.Year) ||
+                                   tomorrow == SwedenPublicHoliday.NewYearsEve(tomorrow.Year);
+            return _holidays.IsPublicHoliday(tomorrow) && !tomorrowIsAnEve;
+        }
     }
 }
