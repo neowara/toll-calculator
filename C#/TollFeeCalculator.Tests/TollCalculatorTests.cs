@@ -145,13 +145,27 @@ namespace TollFeeCalculator.Tests
         [InlineData(2024, 12, 25)]
         [InlineData(2025, 4, 17)]   // day before Good Friday
         [InlineData(2025, 4, 18)]
-        [InlineData(2026, 6, 18)]   // day before Midsummer Eve
         [InlineData(2026, 6, 19)]
         public void HolidaysAndTheDayBeforeAreFreeInOtherYears(int year, int month, int day)
         {
             DateTime date = new DateTime(year, month, day, 7, 30, 0);
 
             Assert.Equal(0, _calculator.GetTollFee(date, _car));
+        }
+
+        // The old code did not have these as free days in 2013 either
+        [Theory]
+        [InlineData(2013, 6, 20)]   // day before Midsummer Eve
+        [InlineData(2013, 12, 23)]  // day before Christmas Eve
+        [InlineData(2013, 12, 30)]  // day before New Year's Eve
+        [InlineData(2026, 6, 18)]
+        [InlineData(2024, 12, 23)]
+        [InlineData(2024, 12, 30)]
+        public void DayBeforeAnEveIsCharged(int year, int month, int day)
+        {
+            DateTime date = new DateTime(year, month, day, 7, 30, 0);
+
+            Assert.Equal(18, _calculator.GetTollFee(date, _car));
         }
 
         [Fact]

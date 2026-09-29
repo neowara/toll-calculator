@@ -110,7 +110,14 @@ public class TollCalculator
 
         if (date.Month == 7) return true;
 
-        // the day before a public holiday is free as well
-        return _holidays.IsPublicHoliday(date) || _holidays.IsPublicHoliday(date.AddDays(1));
+        if (_holidays.IsPublicHoliday(date)) return true;
+
+        // The day before a public holiday is free as well. The package also counts midsummer,
+        // christmas and new year's eve as holidays, but the days before those are normal days.
+        DateTime tomorrow = date.AddDays(1).Date;
+        bool tomorrowIsAnEve = tomorrow == SwedenPublicHoliday.MidsummerEve(tomorrow.Year) ||
+                               tomorrow == SwedenPublicHoliday.ChristmasEve(tomorrow.Year) ||
+                               tomorrow == SwedenPublicHoliday.NewYearsEve(tomorrow.Year);
+        return _holidays.IsPublicHoliday(tomorrow) && !tomorrowIsAnEve;
     }
 }

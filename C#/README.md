@@ -31,3 +31,5 @@ was clearly aiming for:
 - Passes from different days are handled separately, every day has its own 60 SEK limit.
 - Free days are weekends, all of July, Swedish public holidays and the day before a public
   holiday. The holidays come from the PublicHoliday package.
+  The package also counts midsummer, christmas and new year's eve as holidays, but the days
+  before those are normal days (like in the old 2013 list).
