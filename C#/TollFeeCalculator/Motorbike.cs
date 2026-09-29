@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TollFeeCalculator
+﻿namespace TollFeeCalculator
 {
     public class Motorbike : Vehicle
     {
-        public string GetVehicleType()
+        public VehicleType GetVehicleType()
         {
-            return "Motorbike";
+            return VehicleType.Motorbike;
         }
     }
 }

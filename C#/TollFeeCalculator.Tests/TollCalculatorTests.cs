@@ -16,14 +16,14 @@ namespace TollFeeCalculator.Tests
         // Only Car and Motorbike exist as classes, this covers the other types
         private class OtherVehicle : Vehicle
         {
-            private readonly string _type;
+            private readonly VehicleType _type;
 
-            public OtherVehicle(string type)
+            public OtherVehicle(VehicleType type)
             {
                 _type = type;
             }
 
-            public string GetVehicleType()
+            public VehicleType GetVehicleType()
             {
                 return _type;
             }
@@ -62,13 +62,13 @@ namespace TollFeeCalculator.Tests
         }
 
         [Theory]
-        [InlineData("Motorbike")]
-        [InlineData("Tractor")]
-        [InlineData("Emergency")]
-        [InlineData("Diplomat")]
-        [InlineData("Foreign")]
-        [InlineData("Military")]
-        public void TollFreeVehiclesPayNothing(string type)
+        [InlineData(VehicleType.Motorbike)]
+        [InlineData(VehicleType.Tractor)]
+        [InlineData(VehicleType.Emergency)]
+        [InlineData(VehicleType.Diplomat)]
+        [InlineData(VehicleType.Foreign)]
+        [InlineData(VehicleType.Military)]
+        public void TollFreeVehiclesPayNothing(VehicleType type)
         {
             Vehicle vehicle = new OtherVehicle(type);
 
