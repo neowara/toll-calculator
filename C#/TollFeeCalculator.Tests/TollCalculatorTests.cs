@@ -196,6 +196,17 @@ namespace TollFeeCalculator.Tests
             Assert.Equal(18, _calculator.GetTollFee(_car, utc));
         }
 
+        [Theory]
+        [InlineData(17, 29, 8)]   // 18:29 in Sweden, the last minute with a fee
+        [InlineData(17, 30, 0)]   // 18:30 in Sweden, free
+        public void UtcPassIsConvertedBeforeTheFeeIsLookedUp(int hour, int minute, int expectedFee)
+        {
+            // March is UTC+1, so 17:29 UTC is 18:29 in Sweden
+            DateTime utc = new DateTime(2024, 3, 5, hour, minute, 0, DateTimeKind.Utc);
+
+            Assert.Equal(expectedFee, _calculator.GetTollFee(_car, utc));
+        }
+
         [Fact]
         public void UtcPassesAreGroupedAsSwedishTime()
         {
