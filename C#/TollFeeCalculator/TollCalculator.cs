@@ -147,7 +147,10 @@ namespace TollFeeCalculator
             bool tomorrowIsAnEve = tomorrow == SwedenPublicHoliday.MidsummerEve(tomorrow.Year) ||
                                    tomorrow == SwedenPublicHoliday.ChristmasEve(tomorrow.Year) ||
                                    tomorrow == SwedenPublicHoliday.NewYearsEve(tomorrow.Year);
-            return _holidays.IsPublicHoliday(tomorrow) && !tomorrowIsAnEve;
+            // The package does not see All Saints' Day when it falls on 31 October, so check it here
+            bool tomorrowIsAHoliday = _holidays.IsPublicHoliday(tomorrow) ||
+                                      tomorrow == SwedenPublicHoliday.AllSaintsDay(tomorrow.Year);
+            return tomorrowIsAHoliday && !tomorrowIsAnEve;
         }
     }
 }

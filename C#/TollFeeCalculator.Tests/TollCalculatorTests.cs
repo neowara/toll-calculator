@@ -144,6 +144,9 @@ namespace TollFeeCalculator.Tests
         [InlineData(2025, 4, 17)]   // day before Good Friday
         [InlineData(2025, 4, 18)]
         [InlineData(2026, 6, 19)]
+        [InlineData(2015, 10, 30)]  // All Saints' Day is 31 October this year
+        [InlineData(2020, 10, 30)]
+        [InlineData(2026, 10, 30)]
         public void HolidaysAndTheDayBeforeAreFreeInOtherYears(int year, int month, int day)
         {
             DateTime date = new DateTime(year, month, day, 7, 30, 0);
