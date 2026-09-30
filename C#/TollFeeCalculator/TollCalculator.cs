@@ -45,6 +45,7 @@ namespace TollFeeCalculator
         public int GetTollFee(IVehicle vehicle, DateTime[] dates)
         {
             if (dates == null) throw new ArgumentNullException(nameof(dates));
+            if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
 
             // the 60 SEK limit is per day so we handle one day at a time
             Dictionary<DateTime, List<DateTime>> passesPerDay = new Dictionary<DateTime, List<DateTime>>();

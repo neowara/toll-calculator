@@ -224,6 +224,20 @@ namespace TollFeeCalculator.Tests
         }
 
         [Fact]
+        public void NullVehicleThrowsWithManyPasses()
+        {
+            DateTime[] passes = { At(7, 30), At(8, 45) };
+
+            Assert.Throws<ArgumentNullException>(() => _calculator.GetTollFee(null!, passes));
+        }
+
+        [Fact]
+        public void NullVehicleThrowsEvenWithNoPasses()
+        {
+            Assert.Throws<ArgumentNullException>(() => _calculator.GetTollFee(null!, new DateTime[0]));
+        }
+
+        [Fact]
         public void NoPassesMeansNoFee()
         {
             Assert.Equal(0, _calculator.GetTollFee(_car, new DateTime[0]));
