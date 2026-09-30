@@ -1,4 +1,4 @@
-namespace TollFeeCalculator.Tests
+﻿namespace TollFeeCalculator.Tests
 {
     public class TollCalculatorTests
     {
