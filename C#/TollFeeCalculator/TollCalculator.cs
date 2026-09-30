@@ -4,6 +4,9 @@ namespace TollFeeCalculator
 {
     public class TollCalculator
     {
+        private const int MaxDailyFee = 60;
+        private const int ChargeWindowMinutes = 60;
+
         private readonly SwedenPublicHoliday _holidays = new SwedenPublicHoliday();
 
         private static readonly TimeZoneInfo _swedenTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Stockholm");
@@ -42,10 +45,11 @@ namespace TollFeeCalculator
         /// <param name="vehicle">The vehicle</param>
         /// <param name="dates">Date and time of all passes</param>
         /// <returns>The total toll fee</returns>
+        /// <exception cref="ArgumentNullException">If vehicle or dates is null</exception>
         public int GetTollFee(IVehicle vehicle, DateTime[] dates)
         {
-            if (dates == null) throw new ArgumentNullException(nameof(dates));
-            if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
+            ArgumentNullException.ThrowIfNull(dates);
+            ArgumentNullException.ThrowIfNull(vehicle);
 
             // the 60 SEK limit is per day so we handle one day at a time
             Dictionary<DateTime, List<DateTime>> passesPerDay = new Dictionary<DateTime, List<DateTime>>();
@@ -85,7 +89,7 @@ namespace TollFeeCalculator
                 // a free pass (for example before 06:00) should not start an hour
                 if (fee == 0) continue;
 
-                if (hourStart == null || (pass - hourStart.Value).TotalMinutes > 60)
+                if (hourStart == null || (pass - hourStart.Value).TotalMinutes > ChargeWindowMinutes)
                 {
                     dayFee += hourFee;
                     hourFee = 0;
@@ -96,8 +100,7 @@ namespace TollFeeCalculator
             }
             dayFee += hourFee;
 
-            if (dayFee > 60) dayFee = 60;
-            return dayFee;
+            return Math.Min(dayFee, MaxDailyFee);
         }
 
         private bool IsTollFreeVehicle(IVehicle vehicle)
@@ -111,9 +114,16 @@ namespace TollFeeCalculator
                    type == VehicleType.Military;
         }
 
+        /// <summary>
+        /// Calculate the toll fee for a single pass. A UTC time is converted to Swedish time first.
+        /// </summary>
+        /// <param name="vehicle">The vehicle</param>
+        /// <param name="date">Date and time of the pass</param>
+        /// <returns>The fee for the pass, 0 if the vehicle or the day is toll free</returns>
+        /// <exception cref="ArgumentNullException">If vehicle is null</exception>
         public int GetTollFee(IVehicle vehicle, DateTime date)
         {
-            if (vehicle == null) throw new ArgumentNullException(nameof(vehicle));
+            ArgumentNullException.ThrowIfNull(vehicle);
 
             DateTime swedishTime = ToSwedishTime(date);
             if (IsTollFreeDate(swedishTime) || IsTollFreeVehicle(vehicle)) return 0;
